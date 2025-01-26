@@ -2,70 +2,79 @@ import { MatchMakingStrategy } from "./MatchMakingStrategy";
 import { Individual } from "./Individual";
 
 export class HabitBaseMatchMakingStrategy implements MatchMakingStrategy {
-  match(user: Individual, people: Individual[]): Individual {
-    const habitArr = people.map((person) => {
-      const habitIntersectionCount = person
-        .getHabits()
-        .filter((habit) => user.getHabits().includes(habit)).length;
+  match(user: Individual, matchedPeople: Individual[]): Individual {
+    const habitsArr = getHabitsArr(user, matchedPeople);
 
-      return { id: person.getId(), habitIntersectionCount };
-    });
+    return matchedPeople.find(
+      (person) =>
+        person.getId() === getMaxOrMinHabitIntersectionId(habitsArr, false)
+    )!;
+  }
 
-    return people.find(
-      (person) => person.getId() === getMaxHabitIntersectionId(habitArr)
+  reverseMatch(user: Individual, matchedPeople: Individual[]): Individual {
+    const habitsArr = getHabitsArr(user, matchedPeople);
+
+    return matchedPeople.find(
+      (person) =>
+        person.getId() === getMaxOrMinHabitIntersectionId(habitsArr, true)
     )!;
   }
 }
 
-const dummy = [
-  {
-    id: 1,
-    habitIntersectionCount: 2,
-  },
-  {
-    id: 2,
-    habitIntersectionCount: 3,
-  },
-  {
-    id: 3,
-    habitIntersectionCount: 5,
-  },
-  {
-    id: 4,
-    habitIntersectionCount: 3,
-  },
-];
+const getHabitsArr = (
+  user: Individual,
+  matchedPeople: Individual[]
+): {
+  id: number;
+  habitIntersectionCount: number;
+}[] => {
+  return matchedPeople.map((person) => {
+    const habitIntersectionCount = person
+      .getHabits()
+      .filter((habit) => user.getHabits().includes(habit)).length;
 
-const getMaxHabitIntersectionId = (
-  habitArr: { id: number; habitIntersectionCount: number }[]
+    return { id: person.getId(), habitIntersectionCount };
+  });
+};
+
+const getMaxOrMinHabitIntersectionId = (
+  habitsArr: { id: number; habitIntersectionCount: number }[],
+  isReverse: boolean
 ) => {
   const getMaxOrMinBy = <T>(arr: T[], compareFn: (a: T, b: T) => boolean) => {
-    return arr.reduce((max, current) => {
-      if (compareFn(current, max)) {
+    return arr.reduce((acc, current) => {
+      if (compareFn(current, acc)) {
         return current;
       }
-      return max;
+      return acc;
     });
   };
 
-  // 找出興趣交集最多的對象
+  // 找出興趣交集最多/最少的對象
   const maxHabitIntersection = getMaxOrMinBy(
-    habitArr,
+    habitsArr,
     (a, b) => a.habitIntersectionCount > b.habitIntersectionCount
+  );
+  const minHabitIntersection = getMaxOrMinBy(
+    habitsArr,
+    (a, b) => a.habitIntersectionCount < b.habitIntersectionCount
   );
 
   // 篩選出所有距離相同的對象
-  const maxHabitIntersectionArr = habitArr.filter(
-    (person) =>
-      person.habitIntersectionCount ===
-      maxHabitIntersection.habitIntersectionCount
+  const habitsIntersectionList = habitsArr.filter((person) =>
+    // 如果是反向配對，則選擇興趣交集最少的對象
+    isReverse
+      ? person.habitIntersectionCount ===
+        minHabitIntersection.habitIntersectionCount
+      : person.habitIntersectionCount ===
+        maxHabitIntersection.habitIntersectionCount
   );
 
   // 如果有多個對象，則選擇 ID 最小的
-  const maxHabitIntersectionId = getMaxOrMinBy(
-    maxHabitIntersectionArr,
+  const habitIntersectionId = getMaxOrMinBy(
+    habitsIntersectionList,
     (a, b) => a.id < b.id
   ).id;
 
-  return maxHabitIntersectionId;
+  return habitIntersectionId;
 };
