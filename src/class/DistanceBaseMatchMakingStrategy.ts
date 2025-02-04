@@ -1,7 +1,8 @@
 import { MatchMakingStrategy } from "./MatchMakingStrategy";
+import { ReverseMatchMakingStrategy } from "./ReverseMatchMakingStrategy";
 import { Individual } from "./Individual";
 
-export class DistanceBaseMatchMakingStrategy implements MatchMakingStrategy {
+export class DistanceBaseMatchMakingStrategy implements MatchMakingStrategy, ReverseMatchMakingStrategy {
   match(user: Individual, matchedPeople: Individual[]): Individual {
     const distanceScore = getDistanceScoreArr(user, matchedPeople);
     const minDistanceId = getMinOrMaxDistanceId(distanceScore, false);

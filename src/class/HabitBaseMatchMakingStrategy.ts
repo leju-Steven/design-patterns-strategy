@@ -1,7 +1,10 @@
 import { MatchMakingStrategy } from "./MatchMakingStrategy";
+import { ReverseMatchMakingStrategy } from "./ReverseMatchMakingStrategy";
 import { Individual } from "./Individual";
 
-export class HabitBaseMatchMakingStrategy implements MatchMakingStrategy {
+export class HabitBaseMatchMakingStrategy
+  implements MatchMakingStrategy, ReverseMatchMakingStrategy
+{
   match(user: Individual, matchedPeople: Individual[]): Individual {
     const habitsArr = getHabitsArr(user, matchedPeople);
 
