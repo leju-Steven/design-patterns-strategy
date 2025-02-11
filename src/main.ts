@@ -15,32 +15,24 @@ const currentUser = new Individual(
   [1, 2]
 );
 
-// 距離匹配(最近)
+const reverseMatchDecorator = new ReverseMatchDecorator();
+
+// 距離匹配
 const matchMakingStrategy1 = new MatchMakingSystem(
   new DistanceBaseMatchMakingStrategy()
 );
 
-// 興趣匹配(最多)
+// 興趣匹配
 const matchMakingStrategy2 = new MatchMakingSystem(
   new HabitBaseMatchMakingStrategy()
 );
 
-// 距離匹配(最遠)
-const matchMakingStrategy3 = new MatchMakingSystem(
-  new ReverseMatchDecorator(new DistanceBaseMatchMakingStrategy())
-);
+const match1 = matchMakingStrategy1.match(currentUser, users)[0];
+const match2 = matchMakingStrategy2.match(currentUser, users)[0];
+const match3 = reverseMatchDecorator.reverseMatch(matchMakingStrategy1.match(currentUser, users))[0];
+const match4 = reverseMatchDecorator.reverseMatch(matchMakingStrategy2.match(currentUser, users))[0];
 
-// 興趣匹配(最少)
-const matchMakingStrategy4 = new MatchMakingSystem(
-  new ReverseMatchDecorator(new HabitBaseMatchMakingStrategy())
-);
-
-const match1 = matchMakingStrategy1.match(currentUser, users);
-const match2 = matchMakingStrategy2.match(currentUser, users);
-const match3 = matchMakingStrategy3.match(currentUser, users);
-const match4 = matchMakingStrategy4.match(currentUser, users);
-
-console.log("距離匹配(最近)", match1);
-console.log("興趣匹配(最多)", match2);
-console.log("距離匹配(最遠)", match3);
-console.log("興趣匹配(最少)", match4);
+console.log('距離匹配(最近)',match1);
+console.log('興趣匹配(最多)',match2);
+console.log('距離匹配(最遠)',match3);
+console.log('興趣匹配(最少)',match4);

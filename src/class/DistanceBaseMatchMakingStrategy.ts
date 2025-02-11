@@ -1,20 +1,15 @@
 import { MatchMakingStrategy } from "./MatchMakingStrategy";
-import { ReverseMatchMakingStrategy } from "./ReverseMatchMakingStrategy";
 import { Individual } from "./Individual";
 
-export class DistanceBaseMatchMakingStrategy implements MatchMakingStrategy, ReverseMatchMakingStrategy {
-  match(user: Individual, matchedPeople: Individual[]): Individual {
+export class DistanceBaseMatchMakingStrategy implements MatchMakingStrategy {
+  match(user: Individual, matchedPeople: Individual[]): Individual[] {
     const distanceScore = getDistanceScoreArr(user, matchedPeople);
-    const minDistanceId = getMinOrMaxDistanceId(distanceScore, false);
 
-    return matchedPeople.find((person) => person.getId() === minDistanceId)!;
-  }
+    const result = sortScoreArr(distanceScore).map((score) => {
+      return matchedPeople.find((person) => person.getId() === score.id)!;
+    });
 
-  reverseMatch(user: Individual, matchedPeople: Individual[]): Individual {
-    const distanceScore = getDistanceScoreArr(user, matchedPeople);
-    const maxDistanceId = getMinOrMaxDistanceId(distanceScore, true);
-
-    return matchedPeople.find((person) => person.getId() === maxDistanceId)!;
+    return result;
   }
 }
 
@@ -34,41 +29,13 @@ const getDistanceScoreArr = (user: Individual, matchedPeople: Individual[]) => {
   });
 };
 
-const getMinOrMaxDistanceId = (
-  distanceScoreArr: { id: number; distance: number }[],
-  isReverse = false
-) => {
-  const getMinOrMaxBy = <T>(arr: T[], compareFn: (a: T, b: T) => boolean) => {
-    return arr.reduce((acc, current) => {
-      if (compareFn(current, acc)) {
-        return current;
-      }
-      return acc;
-    });
-  };
+const sortScoreArr = (scoreArr: { id: number; distance: number }[]) => {
+  return scoreArr.sort((a, b) => {
+    // 如果距離相同，則先排比較小的 ID
+    if (a.distance === b.distance) {
+      return a.id - b.id;
+    }
 
-  // 找出距離最遠/近的對象
-  const minDistance = getMinOrMaxBy(
-    distanceScoreArr,
-    (a, b) => a.distance < b.distance
-  );
-  const maxDistance = getMinOrMaxBy(
-    distanceScoreArr,
-    (a, b) => a.distance > b.distance
-  );
-
-  // 篩選出所有距離相同的對象
-  const minOrMaxDistanceScoreArr = distanceScoreArr.filter((person) =>
-    isReverse
-      ? person.distance === maxDistance.distance
-      : person.distance === minDistance.distance
-  );
-
-  // 如果有多個對象，則選擇 ID 最小的
-  const targetDistanceId = getMinOrMaxBy(
-    minOrMaxDistanceScoreArr,
-    (a, b) => a.id < b.id
-  ).id;
-
-  return targetDistanceId;
+    return a.distance - b.distance;
+  });
 };
